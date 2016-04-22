@@ -255,7 +255,7 @@ kcpsm6 #(
  	 	.sleep  	 	(kcpsm6_sleep),
  	 	.clk   	 	(sysclk));
 
- 	pbexpgm #(
+ 	proj2demo #(
 	 	.C_FAMILY  	   ("7S"),    //Family 'S6' or 'V6' or '7S'
 	 	.C_RAM_SIZE_KWORDS (2),      //Program size '1', '2' or '4'
 	 	.C_JTAG_LOADER_ENABLE (1))    //Include JTAG Loader when set to 1'b1

@@ -240,11 +240,14 @@ always @ (posedge sysclk) begin
 
    // Write to LEDS[7:0] at port address 01 hex
    if (port_id[0] == 1'b1) begin
-   PORT_02 <= io_data_in;         end
+   PORT_03 <= io_data_in;
+   PORT_04 <= io_data_in;
+   PORT_05 <= io_data_in;
+   PORT_06 <= io_data_in;
+   PORT_06 <= io_data_in;  //decimal point... 
 
-   // Write to LEDS[7:0] at port address 01 hex
-   if (port_id[0] == 1'b1) begin
-   PORT_02 <= io_data_in;         end
+    end
+
 
 
     end
