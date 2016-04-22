@@ -82,7 +82,7 @@ NAMEREG		s7,		Dig0			; 7-segment display digit 0
 ; Nexys 4 board base I/O interface ports compatible with the Nexys3 I/O interface
 ;  Port Addresses
 CONSTANT	PA_PBTNS,		00		; (i) pushbuttons inputs
-CONSTANT	PA_SLSWTCH,		01		; (i) slide switches
+CONSTANT	PA_SLSWTCH,	01		; (i) slide switches
 CONSTANT	PA_LEDS,		02		; (o) LEDs
 CONSTANT	PA_DIG3,		03		; (o) digit 3 port address
 CONSTANT	PA_DIG2,		04		; (o) digit 2 port address
@@ -94,8 +94,8 @@ CONSTANT	PA_RSVD,		08		; (o) *RESERVED* port address
 
 ; Rojobot interface registers
 CONSTANT	PA_MOTCTL_IN,	09		; (o) Rojobot motor control output from system
-CONSTANT	PA_LOCX,		0A		; (i) X coordinate of rojobot location
-CONSTANT	PA_LOCY,		0B		; (i))Y coordinate of rojobot location
+CONSTANT	PA_LOCX,		0A		; 	(i) X coordinate of rojobot location
+CONSTANT	PA_LOCY,		0B		; 	(i))Y coordinate of rojobot location
 CONSTANT	PA_BOTINFO,		0C		; (i) Rojobot info register
 CONSTANT	PA_SENSORS,		0D		; (i) Sensor register
 CONSTANT	PA_LMDIST,		0E		; (i) Rojobot left motor distance register
