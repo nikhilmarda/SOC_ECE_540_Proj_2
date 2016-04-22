@@ -49,6 +49,7 @@ module nexys4_if
  	// interface to the Nexys4
  	input  	 	 	sysclk,  	 	// system clock
  	input  	 	 	sysreset, 	 	// system reset (asserted high)
+  /*
  	input  	[7:0] 	PORT_A,  	 	// slide switches [7:0]
  	input  	[7:0] 	PORT_B,  	 	// slide switches [15:8]
  	input  	[7:0] 	PORT_C,  	 	// debounced buttons
@@ -57,6 +58,49 @@ module nexys4_if
  	output reg [7:0] 	PORT_02,  	 	// LEDs [15:8]
  	output reg [7:0] 	PORT_04,  	 	// Digit[0] of 7 segment display
  	output reg [7:0]  PORT_08,  	 	// 7-segment display decimal points
+  */
+  input [7:0]  PORT_00,     //PA_PBTNS  (i) pushbuttons inputs
+  input [7:0]  PORT_01,   //PA_SLSWTCH (i) slide switches
+  output [7:0] PORT_02,  //PA_LEDS (o) LEDs
+  output [7:0] PORT_03, //PA_DIG3 (o) digit 3 port address
+  output [7:0] PORT_04, //PA_DIG2 (o) digit 2 port address
+  output [7:0] PORT_05, //PA_DIG1 (o) digit 1 port address
+  output [7:0] PORT_06, //PA_DIG0 (o) digit 0 port address
+  output [3:0] PORT_07, //PA_DP (o) decimal points 3:0 port address
+  output [7:0] PORT_08, //PA_RSVD (o) *RESERVED* port address
+
+
+   output [7:0] PORT_09, //PA_MOTCTL_IN (o) Rojobot motor control output from system
+   input  [7:0] PORT_0A, // PA_LOCX (i) X coordinate of rojobot location
+   input  [7:0] PORT_0B, //PA_LOCY (i)  Y coordinate of rojobot location
+   input  [7:0] PORT_0C,  //PA_BOTINFO (i) Rojobot info register
+   input [7:0] PORT_0D,//PA_SENSORS (i) Sensor register
+   input [7:0] PORT_0E, // PA_LMDIST (i) Rojobot left motor distance register
+   input [7:0] PORT_0F, //PA_RMDIST (i) Rojobot right motor distance register
+
+
+
+   //Extended Alternate I/O interface
+
+   input [7:0] PORT_10, //PA_PBTNS_ALT (i) pushbutton inputs alternate port address
+   input [7:0] PORT_11, //PA_SLSWTCH1508 (i) slide switches 15:8 (high byte of switches
+   output [7:0] PORT_12, // PA_LEDS1508 LEDs 15:8 (high byte of switches)
+   output [7:0] PORT_13, // PA_DIG7 (o) digit 7 port address
+   output [7:0] PORT_14, //PA_DIG6 (o) digit 6 port address
+   output [7:0] PORT_15, //PA_DIG5 (o) digit 5 port address
+   output [7:0] PORT_16, //PA_DIG4 (o) digit 4 port address
+   output [7:0] PORT_17,//PA_DP0704  (o) decimal points 7:4 port address
+   output [7:0] PORT_18, //PA_RSVD_ALT (o) *RESERVED* alternate port address
+   output [7:0] PORT_19, //PA_MOTCTL_IN_ALT (o) Rojobot motor control output from system
+
+   input [7:0] PORT_1A, //PA_LOCX_ALT (i) X coordinate of rojobot location
+   input [7:0] PORT_1B, //PA_LOCY_ALT i))Y coordinate of rojobot location
+   input [7:0] PORT_1C, //PA_BOTINFO_ALT (i) Rojobot info register
+   input [7:0] PORT_1D, //PA_SENSORS_ALT (i) Sensor register
+   input [7:0] PORT_1E, //PA_LMDIST_ALT (i) Rojobot left motor distance register
+   input [7:0] PORT_1F, //PA_RMDIST_ALT (i) Rojobot right motor distance register
+
+
 
  	input	interrupt_request // Interrupt request input
 );
@@ -73,7 +117,8 @@ wire reset_in                                  = RESET_POLARITY_LOW ? ~sysreset 
 //
 // The inputs connect via a pipelined multiplexer. For optimum implementation,
 // the input selection control of the multiplexer is limited to only those
-// signals of 'port_id' that are necessary. In this case, only 2-bits are  // required to identify each of four input ports to be read by KCPSM6.
+// signals of 'port_id' that are necessary. In this case, only 2-bits are
+// required to identify each of four input ports to be read by KCPSM6.
 //
 // Note that 'read_strobe' only needs to be used when whatever supplying
 // information to KCPSM6 needs to know when that information has been read. For
@@ -82,21 +127,83 @@ wire reset_in                                  = RESET_POLARITY_LOW ? ~sysreset 
 // information.
 //// Note:  The input registers are binary encoded per kcpsm6_design_template.v
 //
-always @ (posedge sysclk) begin     case (port_id[1:0])
+always @ (posedge sysclk) begin
+        case (port_id[3:0])
 
-        // Read sw[7:0] at port address 00 hex
-        2'b00 : io_data_out                   <= PORT_A;
+/*
+        // Read  (i) pushbuttons inputs
+        2'b00 : io_data_out                   <= PORT_00;
 
-        // Read sw[15:8] at port address 01 hex
-        2'b01 : io_data_out                   <= PORT_B;
+        // Read  (i) slide switches
+        2'b01 : io_data_out                   <= PORT_01;
 
-        // Read Debounced pushbuttons[7:0] from stored value         2'b10 : io_data_out <= PORT_C;
+        // Read Debounced pushbuttons[7:0] from stored value
+        2'b10 : io_data_out <= PORT_C;
 
         // Read LED[15:8] at port address 03 hex
-        2'b11 : io_data_out                   <= PORT_D;          // To ensure minimum logic implementation when defining a multiplexer   	 	// always use don't care for any of the unused cases (although there are   	 	// none in this example).
+        2'b11 : io_data_out                   <= PORT_D;
 
-        default : io_data_out                 <= 8'bXXXXXXXX ;
-     endcase end
+*/
+
+        // Read  (i) pushbuttons inputs
+        4'b0000 : io_data_out                   <= PORT_00;
+
+        // Read  (i) pushbuttons inputs
+        4'b0001 : io_data_out                   <= PORT_01;
+
+        // Read  (i) pushbuttons inputs
+        4'b0010 : io_data_out                   <= PORT_0A;
+
+        // Read  (i) pushbuttons inputs
+        4'b0011 : io_data_out                   <= PORT_0B;
+
+        // Read  (i) pushbuttons inputs
+        4'b0100 : io_data_out                   <= PORT_0C;
+
+        // Read  (i) pushbuttons inputs
+        4'b0101 : io_data_out                   <= PORT_0D;
+
+        // Read  (i) pushbuttons inputs
+        4'b0110 : io_data_out                   <= PORT_0E;
+
+        // Read  (i) pushbuttons inputs
+        4'b0111 : io_data_out                   <= PORT_0F;
+
+        // Read  (i) pushbuttons inputs
+        4'b1000 : io_data_out                   <= PORT_10;
+
+        // Read  (i) pushbuttons inputs
+        4'b1001 : io_data_out                   <= PORT_11;
+
+        // Read  (i) pushbuttons inputs
+        4'b1010 : io_data_out                   <= PORT_1A;
+
+        // Read  (i) pushbuttons inputs
+        4'b1011 : io_data_out                   <= PORT_1B;
+
+        // Read  (i) pushbuttons inputs
+        4'b1100 : io_data_out                   <= PORT_1C;
+
+        // Read  (i) pushbuttons inputs
+        4'b1101 : io_data_out                   <= PORT_1D;
+
+        // Read  (i) pushbuttons inputs
+        4'b1110 : io_data_out                   <= PORT_1E;
+
+        // Read  (i) pushbuttons inputs
+        4'b1111 : io_data_out                   <= PORT_1F;
+
+
+
+
+
+         // To ensure minimum logic implementation when defining a multiplexer
+         // always use don't care for any of the unused cases (although there are
+         // none in this example).
+
+        default : io_data_out                 <= 8'bXXXXXXXX ;  // Do I need edit ??
+     endcase
+     end
 /////////////////////////////////////////////////////////////////////////////////
 // General Purpose Output Ports
 /////////////////////////////////////////////////////////////////////////////////
@@ -110,6 +217,8 @@ always @ (posedge sysclk) begin     case (port_id[1:0])
     always @ (posedge sysclk) begin
     // 'write_strobe' is used to qualify all writes to general output ports.
     if (write_strobe == 1'b1) begin
+
+    /*
         // Write to LEDS[7:0] at port address 01 hex
         if (port_id[0] == 1'b1) begin
         PORT_01 <= io_data_in;         end
@@ -126,7 +235,20 @@ always @ (posedge sysclk) begin     case (port_id[1:0])
     if (port_id[3] == 1'b1) begin
     PORT_08                                   <= io_data_in;         end
 
-    end end
+   */
+
+
+   // Write to LEDS[7:0] at port address 01 hex
+   if (port_id[0] == 1'b1) begin
+   PORT_02 <= io_data_in;         end
+
+   // Write to LEDS[7:0] at port address 01 hex
+   if (port_id[0] == 1'b1) begin
+   PORT_02 <= io_data_in;         end
+
+
+    end
+    end
 
 /////////////////////////////////////////////////////////////////////////////////
 // Recommended 'closed loop' interrupt interface (when required).
