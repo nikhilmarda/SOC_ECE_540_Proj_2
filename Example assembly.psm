@@ -1,0 +1,220 @@
+; -----------------------------------------------------------------
+; pbexpgm.psm – Simple Picoblaze system example
+;
+; Version: 1.0
+; Author: Roy Kravitz
+; Date:  	14-October-2015
+;
+; Revision History
+; ================
+; 14-Oct-15  	RK  	Created the first version
+;
+; Description:
+; ============
+; This program implements a simple Picoblaze system example so you can see how
+; the hardware and firmware are related.  In this application:
+; - The slide switches are shown on the LEDs
+; - the pushbuttons are shown on the decimal points of the 7-segment display
+; - the values of slide switches[3:0] (rightmost nibble) are shown in hex on  ; Digit[0] of the 7-segment display
+;
+; This program does not use interrupts and the RESERVED input port is hardwired  ; to 0x5A
+; -----------------------------------------------------------------
+; ============================================
+; === Register Names                       ===
+; === sF - sB registers are reserved. All  ===
+; === others keep their default names      ===
+; ============================================
+NAMEREG  	sF,  	Sw15_8  	; current value of the high 8 switches
+NAMEREG  	sE,  	Sw7_0  	; current value of the low 8 switches
+NAMEREG  	sD,  	Btns 	 	; current state of the pushbuttons
+NAMEREG  	sC,  	Leds 	 	; current value of LEDs
+
+; ======================
+; === Port Addresses ===
+; ======================
+
+; input port addresses are binary encoded
+CONSTANT  	PA_RD_SW0700, 	00  	; (i) (PORT_A) slide switches [7:0]
+CONSTANT  	PA_RD_SW1508, 	01  	; (i) (PORT_B) slide switches [15:8]
+CONSTANT  	PA_RD_BTNS,  	02  	; (i) (PORT_C) {2'b00, debounced pushbuttons}
+CONSTANT  	PA_RD_RSVD,  	03  	; (i) (PORT_D)
+
+; output port address are one-hot encoded
+CONSTANT  	PA_WR_LEDS0700, 01  	; (o) (PORT_01) LEDS [7:0]
+CONSTANT  	PA_WR_LEDS1508, 02  	; (o) (PORT_02) LEDS [15:8]
+CONSTANT  	PA_WR_DIGIT0, 04  	; (o) (PORT_04) DIGIT[0] of 7-segment display
+CONSTANT  	PA_WR_DECPTS, 08 ; (o) (PORT_08)Decimal points of 7-segment
+                              ;  	 display
+
+; useful constants and masks
+CONSTANT  	DIG0_MSK,  	1F  	;  mask for DIG0 which takes a 5 bit input
+
+; ===============
+; === main()  ===
+; ===============
+
+ADDRESS 000
+ 	 	JUMP 	main 	; workaround to avoid location 3 corruption
+ 	 	JUMP 	main 	; by Vivado Hardware Manager.  Bug was flagged by
+ 	 	JUMP 	main 	; Ken Chapman and is known to be in 2014.2
+ 	 	JUMP 	main 	; Address 003 can be corrupted by Vivado HW
+                ; manager
+ 	 	 	 	 	 	    ;
+    main:
+ 	 	LOAD 	Leds, FF  	 	 	; indicate that we are
+ 	 	OUTPUT Leds, PA_WR_LEDS0700 ; running by flashing the
+ 	 	OUTPUT Leds, PA_WR_LEDS1508 ; LEDs
+ 	 	CALL  delay_1000ms  	 	 	;
+ 	 	LOAD 	Leds, 00  	 	 	;
+ 	 	OUTPUT Leds, PA_WR_LEDS0700 ;
+ 	 	OUTPUT Leds, PA_WR_LEDS1508 ;
+ 	 	CALL  delay_1000ms  	 	 	;
+
+
+
+; ==================
+; === Main  Loop ===
+; ==================
+ main_L0:
+ 	 	 	 	 	 	 	 	 	 	          ; while(1) {  // main loop
+	                             ;   	is an infinite loop
+ 	 	INPUT Sw15_8, PA_RD_SW1508  	; get the current switches
+ 	 	INPUT Sw7_0, PA_RD_SW0700  	;
+ 	 	INPUT Btns, PA_RD_BTNS  	; get the pushbuttons into
+                              ;   a register
+ 	 	OUTPUT Sw15_8, PA_WR_LEDS1508 ; put the switch values to
+ 	 	OUTPUT Sw7_0, PA_WR_LEDS0700 ; the LEDs
+ 	 	OUTPUT Btns, PA_WR_DECPTS  	; put the buttons to the
+ 	 	 	 	 	 	 	 	 	 	  ; decimal points in the
+ 	 	 	 	 	 	 	 	 	 	  ; 7-segment display
+ 	 	 	 	 	 	 	 	 	 	  ; The hardware formats
+ 	 	 	 	 	 	 	 	 	 	  ; the Btns input {2'b00,
+                      ; btnC,btnL,btnU, btnR,btnD,btnCpuReset}
+ 	 	AND  	Sw7_0, DIG0_MSK  	 	; mask out switches[4:0]
+ 	 	OUTPUT Sw7_0, PA_WR_DIGIT0  	; and write them to
+ 	 	 	 	 	 	 	 	 	 	          ; rightmost digit of 7-seg
+ 	 	 	 	 	 	 	 	 	 	          ;  display
+
+ 	 	CALL 	delay_200ms  	 	 	; wait a bit and then
+ 	 	 	 	 	 	 	 	 	 	        ; start over
+ 	 	JUMP 	main_L0  	 	 	 	; } // end - while loop
+
+;*****************************************************************************
+; Software delay routines  (Courtesy Ken Chapman - Xilinx Corp)
+;*****************************************************************************
+; Constant to define a software delay of 1us. Must be adjusted to reflect the
+; clock applied to KCPSM6. Every instruction executes in 2 cycles making the
+; calculation highly predictable. The '6' in the equation even allows for
+; the 'CALL delay_1us' instruction in the initiating code.
+;
+; delay_1us_constant =  (clock_rate - 6)/4       Where 'clock_rate' is in MHz
+;
+; For our 100MHz clock the constant value is (100-6)/4 = 24  (18 Hex).
+; For clock rates below 10MHz the value of 1 must be used and the operation will
+; become lower than intended.
+;
+CONSTANT DELAYVAL_1uS, 18  	; 1us delay count
+
+; ========================================================
+; === delay_1us() - delays execution for 1 microsecond ===
+; === Registers affected: s0                           ===
+; ========================================================
+delay_1us:
+ 	 	LOAD 	s0,  	DELAYVAL_1uS  	; Load 1us delay constant
+    wait_1us:
+ 	 	SUB  	s0,  	01  	 	; count down to 0
+ 	 	JUMP  	NZ,  	wait_1us  	; and then return
+RETURN
+
+; ===========================================================
+; === delay_40us() - delays execution for 40 microseconds ===
+; === Registers affected: s0, s1                          ===
+; ===========================================================
+ delay_40us:
+ 	 	LOAD 	s1,  	28  	 	; 40 x 1us = 40us
+    wait_40us:
+ 	 	CALL  delay_1us  	 	; delay 1us
+ 	 	SUB  	s1,  	01  	 	; count down to 0
+ 	 	JUMP  NZ,  	wait_40us ; and then return
+ 	 	RETURN
+
+; ========================================================
+; === delay_1 ms() - delays execution for 1 milisecond ===
+; === Registers affected: s0, s1, s2                   ===
+; ========================================================
+ delay_1ms:
+ 	 	LOAD 	s2,  	19  	 	; 25 x 40us = 1ms
+    wait_1ms:
+ 	 	CALL  delay_40us  	 	; delay 40us
+ 	 	SUB  	s2,  	01  	 	; count down to 0
+ 	 	JUMP  NZ,  	wait_1ms  	; and then return
+ 	 	RETURN
+
+; ===================================================================
+; === delay_50 ms() - delays execution for 50 miliseconds (20Hz)  ===
+; === Registers affected: s0, s1, s2, s3                          ===
+; ===================================================================
+ delay_50ms:
+ 	 	LOAD 	s3,  	32  	 	; 50 x 1ms = 50ms
+    wait_50ms:
+ 	 	CALL  delay_1ms  	 	; delay 1ms
+ 	 	SUB  	s3,  	01  	 	; count down to 0
+ 	 	JUMP  NZ,  	wait_50ms ; and then return
+ 	 	RETURN
+
+;*********************************************************************
+; ===================================================================
+; === delay_100 ms() - delays execution for 100 miliseconds (10Hz)===
+; === Registers affected: s0, s1, s2, s3                          ===
+; ===================================================================
+ delay_100ms:
+ 	 	LOAD 	s3,  	64  	 	; 100 x 1ms = 100ms
+    wait_100ms:
+ 	 	CALL  delay_1ms  	 	; delay 1ms
+ 	 	SUB  	s3,  	01  	 	; count down to 0
+ 	 	JUMP  NZ,  	wait_100ms ; and then return
+ 	 	RETURN
+
+;*********************************************************************
+
+
+; ==================================================================
+; === delay_200 ms() - delays execution for 200 miliseconds (5Hz)===
+; === Registers affected: s0, s1, s2, s3                         ===
+; ==================================================================
+ delay_200ms:
+ 	LOAD 	s3,  	C8  	 	; 200 x 1ms = 200ms
+  wait_200ms:
+ 	CALL  delay_1ms  	 	; delay 1ms
+ 	SUB  	s3,  	01  	 	; count down to 0
+ 	JUMP  NZ,  	wait_200ms ; and then return
+ 	RETURN
+;*********************************************************************
+
+
+; ===============================================================
+; === delay_1000 ms() - delays execution for 1000 miliseconds ===
+; === Registers affected: s0, s1, s2, s3, s4                  ===
+; ===============================================================
+	 delay_1000ms:
+ 	LOAD 	s4,  	05  	 	; 5 x 200ms = 1000ms
+  wait_1000ms:
+ 	CALL  delay_200ms  	 	; delay 200ms
+ 	SUB  	s4,  	01  	 	; count down to 0
+ 	JUMP  NZ,  	wait_1000ms ; and then return
+ 	RETURN
+;*******************************************************************
+
+
+; ****** USE THIS FUNCTION FOR SIMULATION (waits 10 cycles) ******
+; ===========================================================
+; === delay_sim() - delays execution for 10 cycles        ===
+; === Registers affected: s0, s1, s2, s3                  ===
+; ===========================================================
+	 delay_sim:
+ 	LOAD 	s3,  	0A  	 	; delay 10
+   wait_sim:
+ 	LOAD 	s3,  	s3  	 	; NOP
+ 	SUB  	s3,  	01  	 	; count down to 0
+ 	JUMP  NZ,  	wait_sim  	; and then return
+ 	RETURN
