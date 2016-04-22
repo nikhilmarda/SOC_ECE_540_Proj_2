@@ -1,5 +1,5 @@
 // nexys4fpga.v - Top level module for Nexys4 as used in the ECE 540 Project 1
-// JOEL jacobs
+
 // Copyright Roy Kravitz, 2008-2015, 2016
 //
 // Created By:		Roy Kravitz and Dave Glover
@@ -113,24 +113,68 @@ wire 	 	 	rdl;
 wire 	 	 	int_request;
 
  	// PicoBlaze I/O registers
-  	wire [7:0]  	sw_high, sw_low;
- 	wire [7:0]  	leds_high, leds_low, digit0_int;
+//  wire [7:0]  	sw_high, sw_low;  //example prog
+ //	wire [7:0]  	leds_high, leds_low, digit0_int; //example prog
+   wire [7:0] PA_PBTNS; // (i) pushbuttons inputs
+   wire [7:0] PA_SLSWTCH; // (i) slide switches
+   wire [7:0] PA_LEDS; // (o) LEDs
+   wire [7:0] PA_DIG3; // (o) digit 3 port address
+   wire [7:0] PA_DIG2; // (o) digit 2 port address
+   wire [7:0] PA_DIG1; // (o) digit 1 port address
+   wire [7:0] PA_DIG0; // (o) digit 0 port address
+   wire [3:0] PA_DP; // (o) decimal points 3:0 port address
+
+    wire [7:0] PA_RSVD; // (o) *RESERVED* port address
+    wire [7:0] PA_MOTCTL_IN; // (o) Rojobot motor control output from system
+    wire [7:0] PA_LOCX; //(i) X coordinate of rojobot location
+    wire [7:0] PA_BOTINFO; // (i) Rojobot info register
+    wire [7:0] PA_SENSORS; // (i) Sensor register
+    wire [7:0] PA_LMDIST; // (i) Rojobot left motor distance register
+    wire [7:0] PA_RMDIST; // (i) Rojobot right motor distance register
+
+
+
+    //Extended Alternate I/O interface
+
+    wire [7:0] PA_PBTNS_ALT; // (i) pushbutton inputs alternate port address
+    wire [7:0] PA_SLSWTCH1508; // (i) slide switches 15:8 (high byte of switches
+    wire [7:0] PA_LEDS1508; //LEDs 15:8 (high byte of switches)
+    wire [7:0] PA_DIG7; // (o) digit 7 port address
+    wire [7:0] PA_DIG6; //(o) digit 6 port address
+    wire [7:0] PA_DIG5; // (o) digit 5 port address
+    wire [7:0] PA_DIG4; //(o) digit 4 port address
+    wire [7:0] PA_DP0704; //  (o) decimal points 7:4 port address
+    wire [7:0] PA_RSVD_ALT; //(o) *RESERVED* alternate port address
+    wire [7:0] PA_MOTCTL_IN_ALT; // (o) Rojobot motor control output from system
+    wire [7:0] PA_LOCX_ALT; // (i) X coordinate of rojobot location
+    wire [7:0] PA_LOCY_ALT; // i))Y coordinate of rojobot location
+    wire [7:0] PA_BOTINFO_ALT; // (i) Rojobot info register
+    wire [7:0] PA_SENSORS_ALT; // (i) Sensor register
+    wire [7:0] PA_LMDIST_ALT; // (i) Rojobot left motor distance register
+    wire [7:0] PA_RMDIST_ALT; // (i) Rojobot right motor distance register
+
+
+
+
+
+
 
  	// set up the display by blanking all but Digit[0]
  	assign  	 	 	dig7 = {5'b11111};
  	assign  	 	 	dig6 = {5'b11111};
  	assign  	 	 	dig5 = {5'b11111};
  	assign  	 	 	dig4 = {5'b11111};
- 	assign  	 	 	dig3 = {5'b11111};
- 	assign  	 	 	dig2 = {5'b11111};
- 	assign  	 	  	dig1 = {5'b11111};
 
  	// The debounced switches, 7-segment Digit[0] and the 7-segment decimal
  	// points are writable by the Picoblaze
  	assign  	 	 	dig0 = digit0_int[4:0];
+  assign  	 	 	dig1 = digit1_int[4:0];
+  assign  	 	 	dig2 = digit2_int[4:0];
+  assign  	 	 	dig3 = digit3_int[4:0];
+
 
  	// global assigns
-  assign sysclk = clk;
+assign sysclk = clk;
 assign  sysreset = ~db_btns[0]; // btnCpuReset is asserted low so invert it assign  sw_high = db_sw[15:8]; assign  sw_low = db_sw[7:0];
 assign  led = {leds_high, leds_low};
 assign dp = segs_int[7];
@@ -237,14 +281,50 @@ kcpsm6 #(
  	 	.interrupt(interrupt),
  	 	.sysclk(sysclk),
  	 	.sysreset(sysreset),
- 	 	.PORT_A(sw_low),
- 	 	.PORT_B(sw_high),
- 	 	.PORT_C({2'b00, db_btns}),
- 	 	.PORT_D(8'b01011010),
-	 	.PORT_01(leds_low),
-	 	.PORT_02(leds_high),
-	 	.PORT_04(digit0_int),
-	 	.PORT_08(decpts),
+ 	 //	.PORT_A(sw_low),
+ 	 //	.PORT_B(sw_high),
+ 	 //	.PORT_C({2'b00, db_btns}),
+ 	// 	.PORT_D(8'b01011010),
+	 //	.PORT_01(leds_low),
+	 //	.PORT_02(leds_high),
+	 //	.PORT_04(digit0_int),
+	 //	.PORT_08(decpts),
+    .PORT_00(PA_PBTNS),
+    .PORT_01(PA_SLSWTCH),
+    .PORT_02(	PA_LEDS),
+    .PORT_03(PA_DIG3),
+    .PORT_04(PA_DIG2),
+    .PORT_05(PA_DIG1)
+    .PORT_06(PA_DIG0),
+    .PORT_07(PA_DP),
+    .PORT_08(PA_RSVD),
+    
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+    .PORT_00(PA_PBTNS),
+
  	 	.interrupt_request(1'b0) // no interrupts in this example
  	);
 

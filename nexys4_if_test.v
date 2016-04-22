@@ -56,8 +56,7 @@ module nexys4_if
  	output reg [7:0] 	PORT_01,  	 	// LEDs [7:0]
  	output reg [7:0] 	PORT_02,  	 	// LEDs [15:8]
  	output reg [7:0] 	PORT_04,  	 	// Digit[0] of 7 segment display
- 	output reg [7:0]
- 	 	PORT_08,  	 	// 7-segment display decimal points
+ 	output reg [7:0]  PORT_08,  	 	// 7-segment display decimal points
 
  	input	interrupt_request // Interrupt request input
 );
@@ -123,7 +122,7 @@ always @ (posedge sysclk) begin     case (port_id[1:0])
     	if (port_id[2] == 1'b1) begin
       PORT_04                                 <= io_data_in;         end
 
- 	 	// Write to decimal points of 7-segment display at port address 04 hex
+ 	 	// Write to decimal points of 7-segment display at port address 08 hex
     if (port_id[3] == 1'b1) begin
     PORT_08                                   <= io_data_in;         end
 
