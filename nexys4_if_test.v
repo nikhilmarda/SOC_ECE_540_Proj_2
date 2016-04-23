@@ -244,9 +244,21 @@ always @ (posedge sysclk) begin
    end
 
    //	(i) X coordinate of rojobot location
-   // Write to
+   // Write to  (o) digit 1 port address
    if (port_id[10] == 1'b1) begin
-   PORT_03 <= io_data_in;
+   PORT_05 <= io_data_in;
+   end
+
+   //	(i) Y coordinate of rojobot location
+   // Write to  (o) digit 0 port address
+   if (port_id[11] == 1'b1) begin
+   PORT_06 <= io_data_in;
+   end
+
+   //	(i) Rojobot info register
+   // Write to  (o) digit 2 port address
+   if (port_id[12] == 1'b1) begin
+   PORT_04 <= io_data_in;
    end
 
    //	(i) Sensor register
@@ -255,16 +267,7 @@ always @ (posedge sysclk) begin
    PORT_02 <= io_data_in;
    end
 
-   // Write to LEDS[7:0] at port address 01 hex
-   if (port_id[0] == 1'b1) begin
-   PORT_03 <= io_data_in;
-   end
-
-   // Write to LEDS[7:0] at port address 01 hex
-   if (port_id[0] == 1'b1) begin
-   PORT_03 <= io_data_in;
-   end
-
+   
     end
     end
 
