@@ -61,16 +61,16 @@ module nexys4_if
   */
   input [7:0]  PORT_00,     //PA_PBTNS  (i) pushbuttons inputs
   input [7:0]  PORT_01,   //PA_SLSWTCH (i) slide switches
-  output [7:0] PORT_02,  //PA_LEDS (o) LEDs
-  output [7:0] PORT_03, //PA_DIG3 (o) digit 3 port address
-  output [7:0] PORT_04, //PA_DIG2 (o) digit 2 port address
-  output [7:0] PORT_05, //PA_DIG1 (o) digit 1 port address
-  output [7:0] PORT_06, //PA_DIG0 (o) digit 0 port address
-  output [3:0] PORT_07, //PA_DP (o) decimal points 3:0 port address
-  output [7:0] PORT_08, //PA_RSVD (o) *RESERVED* port address
+  output reg [7:0] PORT_02,  //PA_LEDS (o) LEDs
+  output reg  [7:0] PORT_03, //PA_DIG3 (o) digit 3 port address
+  output reg [7:0] PORT_04, //PA_DIG2 (o) digit 2 port address
+  output reg [7:0] PORT_05, //PA_DIG1 (o) digit 1 port address
+  output reg [7:0] PORT_06, //PA_DIG0 (o) digit 0 port address
+  output reg [3:0] PORT_07, //PA_DP (o) decimal points 3:0 port address
+  output reg [7:0] PORT_08, //PA_RSVD (o) *RESERVED* port address
 
 
-   output [7:0] PORT_09, //PA_MOTCTL_IN (o) Rojobot motor control output from system
+   output reg [7:0] PORT_09, //PA_MOTCTL_IN (o) Rojobot motor control output from system
    input  [7:0] PORT_0A, // PA_LOCX (i) X coordinate of rojobot location
    input  [7:0] PORT_0B, //PA_LOCY (i)  Y coordinate of rojobot location
    input  [7:0] PORT_0C,  //PA_BOTINFO (i) Rojobot info register
@@ -84,14 +84,14 @@ module nexys4_if
 
    input [7:0] PORT_10, //PA_PBTNS_ALT (i) pushbutton inputs alternate port address
    input [7:0] PORT_11, //PA_SLSWTCH1508 (i) slide switches 15:8 (high byte of switches
-   output [7:0] PORT_12, // PA_LEDS1508 LEDs 15:8 (high byte of switches)
-   output [7:0] PORT_13, // PA_DIG7 (o) digit 7 port address
-   output [7:0] PORT_14, //PA_DIG6 (o) digit 6 port address
-   output [7:0] PORT_15, //PA_DIG5 (o) digit 5 port address
-   output [7:0] PORT_16, //PA_DIG4 (o) digit 4 port address
-   output [7:0] PORT_17,//PA_DP0704  (o) decimal points 7:4 port address
-   output [7:0] PORT_18, //PA_RSVD_ALT (o) *RESERVED* alternate port address
-   output [7:0] PORT_19, //PA_MOTCTL_IN_ALT (o) Rojobot motor control output from system
+   output reg [7:0] PORT_12, // PA_LEDS1508 LEDs 15:8 (high byte of switches)
+   output reg [7:0] PORT_13, // PA_DIG7 (o) digit 7 port address
+   output reg [7:0] PORT_14, //PA_DIG6 (o) digit 6 port address
+   output reg [7:0] PORT_15, //PA_DIG5 (o) digit 5 port address
+   output reg [7:0] PORT_16, //PA_DIG4 (o) digit 4 port address
+   output reg [7:0] PORT_17,//PA_DP0704  (o) decimal points 7:4 port address
+   output reg [7:0] PORT_18, //PA_RSVD_ALT (o) *RESERVED* alternate port address
+   output reg [7:0] PORT_19, //PA_MOTCTL_IN_ALT (o) Rojobot motor control output from system
 
    input [7:0] PORT_1A, //PA_LOCX_ALT (i) X coordinate of rojobot location
    input [7:0] PORT_1B, //PA_LOCY_ALT i))Y coordinate of rojobot location
@@ -239,16 +239,31 @@ always @ (posedge sysclk) begin
 
 
    // Write to LEDS[7:0] at port address 01 hex
+   if (port_id[00] == 1'b1) begin
+   PORT_03 <= io_data_in;
+   end
+
+   //	(i) X coordinate of rojobot location
+   // Write to
+   if (port_id[10] == 1'b1) begin
+   PORT_03 <= io_data_in;
+   end
+
+   //	(i) Sensor register
+   // Write to (o) LEDs
+   if (port_id[13] == 1'b1) begin
+   PORT_02 <= io_data_in;
+   end
+
+   // Write to LEDS[7:0] at port address 01 hex
    if (port_id[0] == 1'b1) begin
    PORT_03 <= io_data_in;
-   PORT_04 <= io_data_in;
-   PORT_05 <= io_data_in;
-   PORT_06 <= io_data_in;
-   PORT_06 <= io_data_in;  //decimal point... 
+   end
 
-    end
-
-
+   // Write to LEDS[7:0] at port address 01 hex
+   if (port_id[0] == 1'b1) begin
+   PORT_03 <= io_data_in;
+   end
 
     end
     end
